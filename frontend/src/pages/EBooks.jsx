@@ -3,6 +3,7 @@ import api from '../api/api.js';
 import Loader from '../components/Loader.jsx';
 import Pagination from '../components/Pagination.jsx';
 import { downloadUrl, isSafeUrl } from '../utils/links.js';
+import { imageUrl } from '../utils/images.js';
 
 // Visible to logged-in students (and staff). Read-only: open a link or download it.
 export default function EBooks() {
@@ -74,7 +75,11 @@ export default function EBooks() {
           <div className="ebook-list">
             {ebooks.map((e) => (
               <div key={e._id} className="ebook-card">
-                <div className="ebook-icon">📖</div>
+                {e.coverImage ? (
+                  <img className="ebook-cover" src={imageUrl(e.coverImage)} alt={`Cover of ${e.title}`} loading="lazy" />
+                ) : (
+                  <div className="ebook-icon">📖</div>
+                )}
                 <div className="ebook-body">
                   <h4>{e.title}</h4>
                   {e.author && <p className="muted">by {e.author}</p>}

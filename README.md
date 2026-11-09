@@ -1,4 +1,4 @@
-# School Library (MERN) – librarian-managed
+# Indus School Library (MERN) – librarian-managed
 
 Students do not register themselves. The **librarian enrolls each student** (a library record), then issues and receives books at the desk. All students share **one login** (`student@school.com`) on the home page to see and download **e-book links**, and nothing else. Librarians and admins add the e-book links.
 
@@ -102,3 +102,12 @@ The site adapts to phones (iPhone, iPod touch, Android), tablets (iPad, Android 
 - Tablets: same layout with the tab strip; stat cards and book grids use more columns.
 - Laptops / desktops: full sidebar and wide tables.
 - Touch screens get bigger tap targets and 16px inputs (stops iPhone auto-zoom); notched phones are respected.
+
+## Issuing books: dates
+
+- **Issue date / time** follow the clock automatically (updated every minute). Type or pick a different value to fix it; "Reset to now" returns to the live clock. The same applies to the submitted date/time when returning a book.
+- **Due date** is filled in as issue date + `LOAN_DAYS` (default 14) and follows the issue date. Type another dd/mm/yyyy to override it; the book is due at the end of that day.
+
+- **Deleting records:** on the *Returned* and *All records* tabs every returned record has a checkbox. Tick the ones you want (or **Select all**), then press **Delete selected** and confirm. Books that are not yet returned have no checkbox and cannot be deleted; submit them first so the stock is restored.
+- **E-book cover pages:** when adding or editing an e-book link you can upload a cover image (JPG/PNG/WEBP, up to 2 MB). It appears on the students' E-Books page and as a thumbnail in the librarian's list. E-books without an image show a book icon.
+- **Calendar:** the *Due date* box on the Issue / Return page has a 📅 button that opens the device's calendar. You can still type dd/mm/yyyy. The issue date is typed and follows the clock.

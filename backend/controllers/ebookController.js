@@ -1,6 +1,7 @@
 const EBook = require('../models/EBook');
 const asyncHandler = require('../utils/asyncHandler');
 const { escapeRegex } = require('../utils/fine');
+const { coverPath, removeCover } = require('../utils/coverFiles');
 
 const pick = (body) => {
   const data = {};
@@ -8,7 +9,8 @@ const pick = (body) => {
     if (body[k] !== undefined) data[k] = body[k];
   });
   if ('category' in body) data.category = body.category || undefined;
-  if (body.allowDownload !== undefined) data.allowDownload = Boolean(body.allowDownload);
+  // multipart forms send booleans as the text "true" / "false"
+  if (body.allowDownload !== undefined) data.allowDownload = body.allowDownload === true || body.allowDownload === 'true';
   return data;
 };
 
@@ -38,22 +40,42 @@ exports.getEBooks = asyncHandler(async (req, res) => {
   res.json({ ebooks, page: pageNum, pages: Math.ceil(total / limitNum), total });
 });
 
-// POST /api/ebooks   (librarian / admin)
+// POST /api/ebooks   (librarian / admin)  - multipart form, optional file field "cover"
 exports.createEBook = asyncHandler(async (req, res) => {
-  const ebook = await EBook.create({ ...pick(req.body), addedBy: req.user._id });
-  res.status(201).json(await ebook.populate('category', 'name'));
+  const data = { ...pick(req.body), addedBy: req.user._id };
+  if (req.file) data.coverImage = coverPath(req.file.filename);
+  try {
+    const ebook = await EBook.create(data);
+    res.status(201).json(await ebook.populate('category', 'name'));
+  } catch (err) {
+    await removeCover(data.coverImage); // do not leave an orphan file behind
+    throw err;
+  }
 });
 
-// PUT /api/ebooks/:id   (librarian / admin)
+// PUT /api/ebooks/:id   (librarian / admin)  - a new "cover" replaces the old one; removeCover=true deletes it
 exports.updateEBook = asyncHandler(async (req, res) => {
-  const ebook = await EBook.findById(req.params.id);
-  if (!ebook) {
-    res.status(404);
-    throw new Error('E-book not found');
+  const newCover = req.file ? coverPath(req.file.filename) : undefined;
+  try {
+    const ebook = await EBook.findById(req.params.id);
+    if (!ebook) {
+      res.status(404);
+      throw new Error('E-book not found');
+    }
+    Object.assign(ebook, pick(req.body));
+
+    const oldCover = ebook.coverImage;
+    const removing = !newCover && String(req.body.removeCover) === 'true';
+    if (newCover) ebook.coverImage = newCover;
+    else if (removing) ebook.coverImage = undefined;
+
+    await ebook.save();
+    if (newCover || removing) await removeCover(oldCover); // only after the save worked
+    res.json(await ebook.populate('category', 'name'));
+  } catch (err) {
+    await removeCover(newCover); // the update failed, drop the file that was just uploaded
+    throw err;
   }
-  Object.assign(ebook, pick(req.body));
-  await ebook.save();
-  res.json(await ebook.populate('category', 'name'));
 });
 
 // DELETE /api/ebooks/:id   (librarian / admin)
@@ -63,5 +85,6 @@ exports.deleteEBook = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('E-book not found');
   }
+  await removeCover(ebook.coverImage);
   res.json({ message: 'E-book deleted' });
 });

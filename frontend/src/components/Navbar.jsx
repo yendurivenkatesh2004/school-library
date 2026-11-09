@@ -27,7 +27,7 @@ export default function Navbar() {
       <div className="container nav-inner">
         <Link to="/" className="brand">
           <img src="/logo-indus.png" alt="First Among Equals" className="logo-left" />
-          <span>📚 School Library</span>
+          <span>📚 Indus School Library</span>
         </Link>
 
         <div id="nav-menu" className={`nav-menu ${open ? 'open' : ''}`}>

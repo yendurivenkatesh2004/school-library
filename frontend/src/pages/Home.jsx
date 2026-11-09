@@ -21,7 +21,7 @@ export default function Home() {
   return (
     <div>
       <section className="hero">
-        <h1>Welcome to the School Library</h1>
+        <h1>Welcome to the Indus School Library</h1>
         <p>Search our catalogue and see which books are available, then visit the library desk to borrow.</p>
         <div className="hero-actions">
           <Link to="/student-login" className="btn btn-lg">🎓 Student Login (E-Books)</Link>

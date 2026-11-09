@@ -59,3 +59,13 @@ export const maskDate = (text) => {
 };
 
 export const daysLate = (dueDate) => Math.max(0, Math.ceil((Date.now() - new Date(dueDate)) / 86400000));
+
+// dd/mm/yyyy <-> yyyy-mm-dd (the format used by the browser's calendar picker)
+export const toIsoDate = (text) => {
+  const d = parseDMY(text);
+  return d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` : '';
+};
+export const fromIsoDate = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+};

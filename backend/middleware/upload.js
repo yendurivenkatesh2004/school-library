@@ -16,7 +16,7 @@ const upload = multer({
   storage,
   limits: { fileSize: MAX_SIZE, files: 1 },
   fileFilter: (req, file, cb) => {
-    if (!EXT[file.mimetype]) return cb(new Error('Cover must be a JPG, PNG or WEBP image'));
+    if (!EXT[file.mimetype]) return cb(new Error('Image must be a JPG, PNG or WEBP image'));
     cb(null, true);
   },
 }).single('cover');
@@ -42,7 +42,7 @@ module.exports = (req, res, next) => {
     if (err) {
       res.status(400);
       return next(
-        err.code === 'LIMIT_FILE_SIZE' ? new Error('Cover image is too large (maximum 2 MB)') : err
+        err.code === 'LIMIT_FILE_SIZE' ? new Error('Image is too large (maximum 2 MB)') : err
       );
     }
     if (req.file && !looksLikeImage(req.file)) {

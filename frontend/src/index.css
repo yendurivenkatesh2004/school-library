@@ -187,7 +187,12 @@ ul.list { list-style: none; padding-left: 0; }
 .dt-row { display: flex; gap: 0.5rem; align-items: center; }
 .dt-row input { flex: 1; min-width: 0; }
 .dt-row input[type='time'] { flex: 0 0 140px; }
-.issue-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 1rem; margin-bottom: 1rem; }
+.dt-date { position: relative; display: flex; gap: 0.4rem; flex: 1 1 0; min-width: 0; align-items: stretch; }
+.dt-date > input:not(.dt-native) { flex: 1; min-width: 0; }
+.btn-icon { padding: 0 0.7rem; font-size: 1.05rem; line-height: 1; flex: 0 0 auto; }
+/* hidden native picker, positioned under the button so the calendar opens right there */
+.dt-native { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; opacity: 0; pointer-events: none; }
+.issue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; margin-bottom: 1rem; }
 .stat-link { color: inherit; }
 .stat-link:hover { text-decoration: none; border-color: var(--primary); box-shadow: 0 4px 14px rgba(59, 91, 219, 0.15); }
 .table-wrap.scroll { max-height: 380px; overflow-y: auto; }
@@ -209,6 +214,12 @@ ul.list { list-style: none; padding-left: 0; }
 .ebook-list { display: grid; gap: 0.9rem; }
 .ebook-card { display: flex; gap: 1rem; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
 .ebook-icon { font-size: 2rem; }
+.ebook-cover { width: 96px; height: 136px; object-fit: contain; background: #f3f4f6; border: 1px solid var(--border); border-radius: 6px; flex-shrink: 0; align-self: flex-start; }
+.bulk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem 1.2rem; margin: 0.6rem 0; }
+.bulk-bar .check { cursor: pointer; }
+.sel-cell { width: 1%; white-space: nowrap; }
+.sel-cell input[type='checkbox'] { cursor: pointer; }
+tr.row-selected td { background: #eef2ff; }
 .ebook-body { flex: 1; min-width: 0; }
 .ebook-body h4 { font-size: 1.05rem; }
 .ebook-desc { margin-top: 0.4rem; color: var(--text); font-size: 0.92rem; }
@@ -270,6 +281,7 @@ ul.list { list-style: none; padding-left: 0; }
   .two-col, .issue-grid { grid-template-columns: 1fr; }
   .details { gap: 1.2rem; padding: 1.2rem; }
   .ebook-card { flex-direction: column; align-items: flex-start; }
+  .ebook-cover { width: 120px; height: 170px; }
   .ebook-actions { flex-direction: row; flex-wrap: wrap; width: 100%; }
   .ebook-actions .btn { flex: 1 1 140px; }
 }
@@ -333,9 +345,10 @@ ul.list { list-style: none; padding-left: 0; }
   .modal { max-width: 100%; max-height: 92vh; max-height: 92dvh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 1.1rem 1rem calc(1.1rem + env(safe-area-inset-bottom)); }
 
   .dt-row { flex-wrap: wrap; }
-  .dt-row input:not([type='time']) { flex: 1 1 100%; }
+  .dt-date { flex: 1 1 100%; }
   .dt-row input[type='time'] { flex: 1 1 0; min-width: 120px; }
   .dt-row .btn { flex: 1 1 0; min-width: 90px; }
+  .dt-date .btn-icon { flex: 0 0 auto; min-width: 48px; }
   .ss-selected { flex-wrap: wrap; }
   .cover-preview { width: 100px; height: 140px; }
 }

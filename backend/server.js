@@ -36,7 +36,7 @@ app.use(
 );
 
 // Routes
-app.get('/', (req, res) => res.json({ message: 'School Library API is running' }));
+app.get('/', (req, res) => res.json({ message: 'Indus School Library API is running' }));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/books', require('./routes/bookRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));

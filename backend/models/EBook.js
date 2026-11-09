@@ -13,6 +13,8 @@ const ebookSchema = new mongoose.Schema(
       trim: true,
       match: [/^https?:\/\/\S+$/i, 'Link must start with http:// or https://'],
     },
+    // Optional cover picture, stored by the server as /uploads/covers/xxx.jpg
+    coverImage: { type: String, trim: true },
     // When false students can only read/open the link, no Download button is shown
     allowDownload: { type: Boolean, default: true },
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

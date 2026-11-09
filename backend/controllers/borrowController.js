@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Book = require('../models/Book');
 const Borrow = require('../models/Borrow');
 const Student = require('../models/Student');
@@ -19,7 +20,10 @@ const parseDateTime = (value, res, label) => {
   return d;
 };
 
-// POST /api/borrows   body: { studentId, bookId, issueDate }   (all _id values)
+// GET /api/borrows/settings -> { loanDays } so the form can suggest a due date
+exports.getSettings = (req, res) => res.json({ loanDays: loanDays() });
+
+// POST /api/borrows   body: { studentId, bookId, issueDate, dueDate (optional) }   (all _id values)
 exports.issueBook = asyncHandler(async (req, res) => {
   const { studentId, bookId } = req.body;
   if (!studentId || !bookId) {
@@ -31,6 +35,16 @@ exports.issueBook = asyncHandler(async (req, res) => {
   if (issuedAt.getTime() > Date.now() + 5 * 60 * 1000) {
     res.status(400);
     throw new Error('Issue date/time cannot be in the future');
+  }
+
+  // Due date: typed by the librarian, otherwise issue date + LOAN_DAYS
+  let dueAt = addDays(issuedAt, loanDays());
+  if (req.body.dueDate) {
+    dueAt = parseDateTime(req.body.dueDate, res, 'due');
+    if (dueAt <= issuedAt) {
+      res.status(400);
+      throw new Error('Due date must be after the issue date');
+    }
   }
 
   const student = await Student.findById(studentId);
@@ -70,7 +84,7 @@ exports.issueBook = asyncHandler(async (req, res) => {
       student: studentId,
       book: bookId,
       issueDate: issuedAt,
-      dueDate: addDays(issuedAt, loanDays()),
+      dueDate: dueAt,
       issuedBy: req.user._id,
     });
   } catch (err) {
@@ -122,6 +136,38 @@ exports.returnBook = asyncHandler(async (req, res) => {
     { path: 'student', select: 'name studentId' },
   ]);
   res.json(borrow);
+});
+
+// DELETE /api/borrows/:id  - removes a RETURNED record from the history (stock is already restored)
+exports.deleteBorrow = asyncHandler(async (req, res) => {
+  const borrow = await Borrow.findById(req.params.id);
+  if (!borrow) {
+    res.status(404);
+    throw new Error('Borrow record not found');
+  }
+  if (borrow.status !== 'returned') {
+    res.status(400);
+    throw new Error('Only returned records can be deleted. Submit the book first.');
+  }
+  await borrow.deleteOne();
+  res.json({ message: 'Record deleted' });
+});
+
+// POST /api/borrows/bulk-delete   body: { ids: [...] }
+// Deletes the selected RETURNED records. Records that are not returned are skipped and left untouched.
+exports.bulkDeleteBorrows = asyncHandler(async (req, res) => {
+  const ids = Array.isArray(req.body.ids) ? [...new Set(req.body.ids.map(String))] : [];
+  if (ids.length === 0) {
+    res.status(400);
+    throw new Error('Select at least one record');
+  }
+  if (ids.length > 500 || !ids.every((id) => mongoose.isValidObjectId(id))) {
+    res.status(400);
+    throw new Error('Invalid selection');
+  }
+  const result = await Borrow.deleteMany({ _id: { $in: ids }, status: 'returned' });
+  const deleted = result.deletedCount || 0;
+  res.json({ deleted, skipped: ids.length - deleted, message: `${deleted} record(s) deleted` });
 });
 
 // GET /api/borrows?status=borrowed|overdue|returned&search=&page=1&limit=10

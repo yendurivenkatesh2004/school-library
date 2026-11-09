@@ -4,6 +4,8 @@ import api, { getError } from '../../api/api.js';
 import Loader from '../../components/Loader.jsx';
 import Modal from '../../components/Modal.jsx';
 import Pagination from '../../components/Pagination.jsx';
+import CoverPicker from '../../components/CoverPicker.jsx';
+import { imageUrl } from '../../utils/images.js';
 import { formatDate } from '../../utils/dateUtils.js';
 import { isSafeUrl } from '../../utils/links.js';
 
@@ -23,6 +25,9 @@ export default function ManageEBooks() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
+  const [currentCover, setCurrentCover] = useState('');
+  const [cover, setCover] = useState({ file: null, remove: false });
+  const [pickerKey, setPickerKey] = useState(0); // new key = picker starts empty
 
   const load = () => {
     setLoading(true);
@@ -52,6 +57,9 @@ export default function ManageEBooks() {
   const openAdd = () => {
     setEditingId(null);
     setForm(blank);
+    setCurrentCover('');
+    setCover({ file: null, remove: false });
+    setPickerKey((k) => k + 1);
     setFormOpen(true);
   };
 
@@ -65,6 +73,9 @@ export default function ManageEBooks() {
       description: e.description || '',
       allowDownload: e.allowDownload,
     });
+    setCurrentCover(e.coverImage || '');
+    setCover({ file: null, remove: false });
+    setPickerKey((k) => k + 1);
     setFormOpen(true);
   };
 
@@ -75,7 +86,11 @@ export default function ManageEBooks() {
     if (!isSafeUrl(form.link.trim())) return toast.error('The link must start with http:// or https://');
 
     setSaving(true);
-    const payload = { ...form, link: form.link.trim() };
+    // multipart form so the image file can be sent with the text fields
+    const payload = new FormData();
+    Object.entries({ ...form, link: form.link.trim() }).forEach(([k, v]) => payload.append(k, v));
+    if (cover.file) payload.append('cover', cover.file);
+    if (editingId && cover.remove && !cover.file) payload.append('removeCover', 'true');
     try {
       if (editingId) await api.put(`/ebooks/${editingId}`, payload);
       else await api.post('/ebooks', payload);
@@ -125,11 +140,18 @@ export default function ManageEBooks() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Title</th><th>Author</th><th>Category</th><th>Link</th><th>Download</th><th>Added</th><th /></tr>
+                <tr><th>Cover</th><th>Title</th><th>Author</th><th>Category</th><th>Link</th><th>Download</th><th>Added</th><th /></tr>
               </thead>
               <tbody>
                 {ebooks.map((e) => (
                   <tr key={e._id}>
+                    <td>
+                      {e.coverImage ? (
+                        <img className="cover thumb" src={imageUrl(e.coverImage)} alt="" loading="lazy" />
+                      ) : (
+                        <span className="cover cover-fallback thumb">📖</span>
+                      )}
+                    </td>
                     <td>{e.title}</td>
                     <td>{e.author || '-'}</td>
                     <td>{e.category?.name || '-'}</td>
@@ -153,7 +175,7 @@ export default function ManageEBooks() {
                   </tr>
                 ))}
                 {ebooks.length === 0 && (
-                  <tr><td colSpan="7" className="center muted">No e-books added yet</td></tr>
+                  <tr><td colSpan="8" className="center muted">No e-books added yet</td></tr>
                 )}
               </tbody>
             </table>
@@ -185,6 +207,14 @@ export default function ManageEBooks() {
             <div className="full">
               <label>E-book link * (PDF, Google Drive or website URL)</label>
               <input required placeholder="https://..." value={form.link} onChange={set('link')} />
+            </div>
+            <div className="full">
+              <CoverPicker
+                key={pickerKey}
+                label="Cover page image (shown on the students' E-Books page)"
+                currentCover={currentCover}
+                onChange={setCover}
+              />
             </div>
             <div className="full">
               <label>Description</label>
