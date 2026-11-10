@@ -11,7 +11,7 @@ school-library/
 │   ├── config/db.js
 │   ├── models/        User (staff), Student, Book, EBook, Category, Borrow, Reservation
 │   ├── middleware/    auth.js, errorHandler.js, upload.js (book cover images)
-│   ├── uploads/       created automatically; cover images are saved here
+│   ├── uploads/       only used by very old covers; new cover images are stored in MongoDB
 │   ├── controllers/   auth, student, book, ebook, category, borrow, reservation, user, dashboard
 │   ├── routes/        one file per controller
 │   └── utils/         asyncHandler, generateToken, fine
@@ -111,3 +111,7 @@ The site adapts to phones (iPhone, iPod touch, Android), tablets (iPad, Android 
 - **Deleting records:** on the *Returned* and *All records* tabs every returned record has a checkbox. Tick the ones you want (or **Select all**), then press **Delete selected** and confirm. Books that are not yet returned have no checkbox and cannot be deleted; submit them first so the stock is restored.
 - **E-book cover pages:** when adding or editing an e-book link you can upload a cover image (JPG/PNG/WEBP, up to 2 MB). It appears on the students' E-Books page and as a thumbnail in the librarian's list. E-books without an image show a book icon.
 - **Calendar:** the *Due date* box on the Issue / Return page has a 📅 button that opens the device's calendar. You can still type dd/mm/yyyy. The issue date is typed and follows the clock.
+
+## Cover images are stored in MongoDB
+
+Book and e-book cover pictures are saved in the database (collection `coverimages`), not on the server's disk, so they stay forever, even on hosts like Render's free plan that erase the disk on every restart or redeploy. They are still shown at the same `/uploads/covers/...` addresses. Each picture is at most 2 MB, so a free Atlas database (512 MB) holds hundreds of them. Covers uploaded before this change that were saved on a disk that has since been wiped must be uploaded once more.

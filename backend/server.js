@@ -24,7 +24,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', creden
 app.use(express.json());
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
-// Uploaded book covers (public images)
+// Old covers that are still files on disk (public images)
 app.use(
   '/uploads',
   express.static(path.join(__dirname, 'uploads'), {
@@ -34,6 +34,9 @@ app.use(
     },
   })
 );
+
+// Pictures stored in MongoDB (survive restarts and redeploys)
+app.use('/uploads', require('./routes/coverRoutes'));
 
 // Routes
 app.get('/', (req, res) => res.json({ message: 'Indus School Library API is running' }));
